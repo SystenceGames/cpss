@@ -1,6 +1,8 @@
 # cpss
 Cluster PowerShell Session - a csshx inspired Powershell remoting tool
 
+![cpss running 9 sessions](http://i.imgur.com/nu0YZu7.png)
+
 ## Usage
 Open a commandline to the binary and run
 ```
