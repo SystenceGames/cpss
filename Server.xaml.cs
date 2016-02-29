@@ -14,10 +14,10 @@ namespace cpss
 {
     public partial class Server : Window
     {
-        public const string PROCESS_NAME = "cpss.exe";
         private const int ORCHESTRATOR_HEIGHT_PIXELS = 60;
         string username = string.Empty;
         string password = string.Empty;
+        string clientFileName = string.Empty;
         List<string> connectionUris = new List<string>();
         Dictionary<Process, NamedPipeServerStream> pipeServerByProcess = new Dictionary<Process, NamedPipeServerStream>();
         Dictionary<NamedPipeServerStream, StreamWriter> streamWriterByPipeServer = new Dictionary<NamedPipeServerStream, StreamWriter>();
@@ -103,6 +103,7 @@ namespace cpss
                 ShutdownInError("No password specified.  Please specify a password with password=PASSWORD");
                 return;
             }
+            clientFileName = getArgumentValue("clientFileName", args); // this is a dev parameter. pass clientFileName=cpss.exe to circument Visual Studio's process-wrapping behavior.
 
             connectionUris = buildConnectionUris(args);
             if (connectionUris.Count < 1)
@@ -112,12 +113,13 @@ namespace cpss
             }
 
             mMainWindowHandle = Process.GetCurrentProcess().MainWindowHandle;
+            
             mainWindow = Application.Current.MainWindow;
 
             for (int i = 0; i < connectionUris.Count; i++)
             {
                 ProcessStartInfo processStartInfo = new ProcessStartInfo();
-                processStartInfo.FileName = PROCESS_NAME;
+                processStartInfo.FileName = determineClientFileName();
                 string pipeName = buildPipeName(i);
                 NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
                 StreamWriter streamWriter = new StreamWriter(pipeServer);
@@ -135,6 +137,16 @@ namespace cpss
             arrangeWindows();
 
             SetOrchestratorAsTopWindow();
+        }
+
+        private string determineClientFileName()
+        {
+            if (string.IsNullOrEmpty(clientFileName))
+            {
+                return Process.GetCurrentProcess().MainModule.FileName;
+            }
+            
+            return clientFileName;
         }
 
         private void ShutdownInError(string errorMessage)
@@ -262,7 +274,7 @@ namespace cpss
             for (int i = 1; i < args.Length; i++)
             {
                 string arg = args[i];
-                if (!arg.StartsWith("username=") && !arg.StartsWith("password="))
+                if (!arg.StartsWith("username=") && !arg.StartsWith("password=") && !arg.StartsWith("clientFileName="))
                 {
                     result.Add(arg);
                 }
