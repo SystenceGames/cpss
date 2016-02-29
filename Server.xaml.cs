@@ -71,8 +71,15 @@ namespace cpss
 
             foreach (NamedPipeServerStream pipeServer in pipeServerByProcess.Values)
             {
-                StreamWriter streamWriter = streamWriterByPipeServer[pipeServer];
-                writeKeyToStream(keyEventArgs.Key, streamWriter);
+                try
+                {
+                    StreamWriter streamWriter = streamWriterByPipeServer[pipeServer];
+                    writeKeyToStream(keyEventArgs.Key, streamWriter);
+                }
+                catch (Exception exception)
+                {
+
+                }
             }
         }
 
